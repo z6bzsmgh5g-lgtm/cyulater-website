@@ -1,0 +1,43 @@
+@let t = i18n.t().demo;
+<div class="console">
+  <div class="console__tabs" role="tablist" [attr.aria-label]="t.title">
+    @for (c of calls; track c.id; let i = $index) {
+      <button type="button" role="tab" [id]="'demo-tab-' + c.id" [attr.aria-selected]="selectedId() === c.id"
+              [attr.tabindex]="selectedId() === c.id ? 0 : -1" aria-controls="demo-panel"
+              (click)="select(c.id)" (keydown)="onTabKey($event, i)">
+        <span class="method" [class.method--post]="c.method === 'POST'">{{ c.method }}</span>
+        {{ t.endpoints[i].label }}
+      </button>
+    }
+  </div>
+  <div class="console__panel" id="demo-panel" role="tabpanel" [attr.aria-labelledby]="'demo-tab-' + selectedId()">
+    <p class="console__desc">{{ endpointInfo().desc }}</p>
+    <div class="console__grid">
+      <section class="console__pane" [attr.aria-label]="t.request">
+        <header><span class="console__label">{{ t.request }}</span></header>
+        <div class="console__url"><span class="method" [class.method--post]="call().method === 'POST'">{{ call().method }}</span><code>{{ call().path }}</code></div>
+        <pre class="code" tabindex="0"><code>@if (requestTokens().length) {@for (tok of requestTokens(); track $index) {<span [class]="'tk-' + tok.cls">{{ tok.text }}</span>}} @else {<span class="tk-punc">// no body</span>}</code></pre>
+        <div class="console__actions">
+          <button type="button" class="btn btn--primary btn--sm" (click)="send()" [disabled]="state() === 'loading'">{{ state() === 'loading' ? t.sending : t.send }}</button>
+          @if (state() === 'done') { <button type="button" class="btn btn--ghost btn--sm" (click)="reset()">{{ t.reset }}</button> }
+        </div>
+      </section>
+      <section class="console__pane" [attr.aria-label]="t.response" aria-live="polite" [attr.aria-busy]="state() === 'loading'">
+        <header>
+          <span class="console__label">{{ t.response }}</span>
+          @if (state() === 'done') {
+            <span class="console__meta"><span class="status-pill">{{ call().status }} {{ call().statusText }}</span> {{ t.latency }}: {{ call().latencyMs }} ms</span>
+          }
+        </header>
+        @switch (state()) {
+          @case ('idle') { <p class="console__idle">{{ t.idle }}</p> }
+          @case ('loading') { <div class="console__loading" aria-hidden="true"><span></span><span></span><span></span></div> }
+          @case ('done') {
+            <pre class="code code--response" tabindex="0"><code>@for (tok of responseTokens(); track $index) {<span [class]="'tk-' + tok.cls">{{ tok.text }}</span>}</code></pre>
+          }
+        }
+      </section>
+    </div>
+    <p class="console__note">{{ t.note }}</p>
+  </div>
+</div>

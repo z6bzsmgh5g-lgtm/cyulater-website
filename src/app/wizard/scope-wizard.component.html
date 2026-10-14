@@ -1,0 +1,131 @@
+@let t = i18n.t();
+@let w = t.wizard;
+<div class="wizard">
+  @if (result() === 'sent' || result() === 'mailto') {
+    <div class="wizard__done" role="status">
+      <p>{{ result() === 'sent' ? w.sent : w.mailto }}</p>
+      <button type="button" class="btn btn--ghost" (click)="restart()">{{ w.restart }}</button>
+    </div>
+  } @else {
+    <ol class="wizard__steps" aria-hidden="true">
+      @for (s of w.steps; track $index; let i = $index) {
+        <li [class.is-current]="step() === i" [class.is-done]="step() > i"><span>{{ i + 1 }}</span>{{ s }}</li>
+      }
+    </ol>
+    <div class="wizard__bar" role="progressbar" [attr.aria-valuenow]="step() + 1" aria-valuemin="1" [attr.aria-valuemax]="totalSteps" [attr.aria-valuetext]="stepLabel()">
+      <span [style.width.%]="progress()"></span>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="step() === totalSteps - 1 ? submit() : next()" novalidate>
+      <p class="wizard__count" #stepHeading tabindex="-1">{{ stepLabel() }} · {{ w.steps[step()] }}</p>
+
+      @switch (step()) {
+        @case (0) {
+          <fieldset>
+            <legend>{{ w.servicesQ }}</legend>
+            <div class="choice-grid">
+              @for (s of t.services.items; track s.icon) {
+                <label class="choice" [class.is-checked]="services().includes(s.icon)">
+                  <input type="checkbox" [checked]="services().includes(s.icon)" (change)="toggleService(s.icon)" [attr.data-service]="s.icon">
+                  <span>{{ s.title }}</span>
+                </label>
+              }
+            </div>
+            @if (attempted() && !stepValid(0)) { <p class="field__err" role="alert">{{ w.servicesErr }}</p> }
+          </fieldset>
+        }
+        @case (1) {
+          <fieldset>
+            <legend>{{ w.situationQ }} <span class="req" aria-hidden="true">*</span></legend>
+            <div class="choice-grid choice-grid--2">
+              @for (o of w.situations; track o.id) {
+                <label class="choice" [class.is-checked]="form.controls.situation.value === o.id">
+                  <input type="radio" formControlName="situation" [value]="o.id"><span>{{ o.label }}</span>
+                </label>
+              }
+            </div>
+            @if (showError('situation')) { <p class="field__err" role="alert">{{ w.errRequired }}</p> }
+          </fieldset>
+        }
+        @case (2) {
+          <fieldset>
+            <legend>{{ w.scopeQ }} <span class="req" aria-hidden="true">*</span></legend>
+            <div class="choice-grid choice-grid--2">
+              @for (o of w.scopes; track o.id) {
+                <label class="choice" [class.is-checked]="form.controls.scope.value === o.id">
+                  <input type="radio" formControlName="scope" [value]="o.id"><span>{{ o.label }}</span>
+                </label>
+              }
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>{{ w.timelineQ }} <span class="req" aria-hidden="true">*</span></legend>
+            <div class="choice-grid choice-grid--4">
+              @for (o of w.timelines; track o.id) {
+                <label class="choice choice--sm" [class.is-checked]="form.controls.timeline.value === o.id">
+                  <input type="radio" formControlName="timeline" [value]="o.id"><span>{{ o.label }}</span>
+                </label>
+              }
+            </div>
+          </fieldset>
+          <div class="field">
+            <label for="wz-budget">{{ w.budgetQ }}</label>
+            <select id="wz-budget" formControlName="budget">
+              @for (o of w.budgets; track o.id) { <option [value]="o.id">{{ o.label }}</option> }
+            </select>
+          </div>
+          @if (showError('scope') || showError('timeline')) { <p class="field__err" role="alert">{{ w.errRequired }}</p> }
+          @if (recommendation()) {
+            <div class="wizard__rec"><strong>{{ w.recommendation }}</strong><p>{{ recommendation() }}</p></div>
+          }
+        }
+        @case (3) {
+          <fieldset>
+            <legend>{{ w.contactQ }}</legend>
+            <div class="form__row">
+              <div class="field">
+                <label for="wz-name">{{ t.contact.name }} <span class="req" aria-hidden="true">*</span></label>
+                <input id="wz-name" formControlName="name" autocomplete="name" required [attr.aria-invalid]="showError('name')">
+                @if (showError('name')) { <p class="field__err">{{ t.contact.errName }}</p> }
+              </div>
+              <div class="field">
+                <label for="wz-email">{{ t.contact.email }} <span class="req" aria-hidden="true">*</span></label>
+                <input id="wz-email" type="email" formControlName="email" autocomplete="email" required [attr.aria-invalid]="showError('email')">
+                @if (showError('email')) { <p class="field__err">{{ t.contact.errEmail }}</p> }
+              </div>
+            </div>
+            <div class="field">
+              <label for="wz-company">{{ t.contact.company }}</label>
+              <input id="wz-company" formControlName="company" autocomplete="organization">
+            </div>
+            <div class="field">
+              <label for="wz-message">{{ w.message }}</label>
+              <textarea id="wz-message" rows="3" formControlName="message"></textarea>
+            </div>
+            <div class="field field--check">
+              <input id="wz-privacy" type="checkbox" formControlName="privacy" [attr.aria-invalid]="showError('privacy')">
+              <label for="wz-privacy">{{ t.contact.privacy }} <span class="req" aria-hidden="true">*</span></label>
+            </div>
+            @if (showError('privacy')) { <p class="field__err">{{ t.contact.errPrivacy }}</p> }
+          </fieldset>
+          <div class="wizard__summary">
+            <strong>{{ w.summaryTitle }}</strong>
+            <ul>@for (l of summaryLines(); track $index) { <li>{{ l }}</li> }</ul>
+          </div>
+          @if (result() === 'failed') {
+            <p class="form__error" role="alert">{{ w.failed }} <a [href]="mailtoHref()">{{ w.failedLink }}</a></p>
+          }
+        }
+      }
+
+      <div class="wizard__nav">
+        @if (step() > 0) { <button type="button" class="btn btn--ghost" (click)="back()">{{ w.back }}</button> }
+        <span class="wizard__spacer"></span>
+        @if (step() < totalSteps - 1) {
+          <button type="submit" class="btn btn--primary">{{ w.next }}</button>
+        } @else {
+          <button type="submit" class="btn btn--primary" [disabled]="sending()">{{ sending() ? w.sending : w.submit }}</button>
+        }
+      </div>
+    </form>
+  }
+</div>

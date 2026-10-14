@@ -22,7 +22,7 @@ describe('App', () => {
 
   it('renders all sections', async () => {
     const { el } = await render();
-    for (const id of ['start', 'leistungen', 'vorgehen', 'arbeitsweise', 'technologien', 'faq', 'kontakt']) {
+    for (const id of ['start', 'leistungen', 'demo', 'vorgehen', 'arbeitsweise', 'technologien', 'projekt-check', 'faq', 'kontakt']) {
       expect(el.querySelector('#' + id), id).not.toBeNull();
     }
   });
@@ -74,6 +74,41 @@ describe('App', () => {
     buttons[1].click();
     await fixture.whenStable();
     expect(buttons[1].getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('toggles the hypothetical example scenario on a service card', async () => {
+    const { fixture, el } = await render();
+    const btn = el.querySelector<HTMLButtonElement>('.card__toggle')!;
+    expect(btn.getAttribute('aria-expanded')).toBe('false');
+    btn.click();
+    await fixture.whenStable();
+    expect(btn.getAttribute('aria-expanded')).toBe('true');
+    expect(el.querySelector('.card.is-open .card__note')?.textContent).toMatch(/Hypothetisch|Hypothetical/);
+  });
+
+  it('renders the interactive features (pipeline, API demo, wizard, palette)', async () => {
+    const { el } = await render();
+    expect(el.querySelector('#start app-pipeline')).not.toBeNull();
+    expect(el.querySelector('#demo app-api-demo')).not.toBeNull();
+    expect(el.querySelector('#projekt-check app-scope-wizard')).not.toBeNull();
+    expect(el.querySelector('app-command-palette')).not.toBeNull();
+  });
+
+  it('toggles the theme from the nav button', async () => {
+    localStorage.clear();
+    const { fixture, el } = await render();
+    const btn = el.querySelector<HTMLButtonElement>('.theme-toggle')!;
+    const before = document.documentElement.dataset['theme'];
+    btn.click();
+    await fixture.whenStable();
+    expect(document.documentElement.dataset['theme']).not.toBe(before);
+  });
+
+  it('opens the command palette from the nav button', async () => {
+    const { fixture, el } = await render();
+    el.querySelector<HTMLButtonElement>('.icon-btn--k')!.click();
+    await fixture.whenStable();
+    expect(el.querySelector('[role=dialog]')).not.toBeNull();
   });
 
   it('shows the placeholder email note', async () => {

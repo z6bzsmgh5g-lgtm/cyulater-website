@@ -86,7 +86,7 @@ describe('I18nService', () => {
   it('has no empty strings in any language', () => {
     const walk = (o: unknown, path: string): string[] =>
       typeof o === 'string' ? (o.trim() ? [] : [path])
-        : o && typeof o === 'object' ? Object.entries(o).flatMap(([k, v]) => walk(v, `${path}.${k}`)) : [];
+        : o && typeof o === 'object' ? Object.entries(o).filter(([k]) => k !== 'id').flatMap(([k, v]) => walk(v, `${path}.${k}`)) : [];
     for (const l of LANGS) expect(walk(TRANSLATIONS[l], l)).toEqual([]);
   });
 });

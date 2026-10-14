@@ -1,27 +1,35 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, HostListener, inject, signal, viewChild } from '@angular/core';
 import { RevealDirective } from './shared/reveal.directive';
-import { ParticlesComponent } from './shared/particles.component';
 import { IconComponent } from './shared/icon.component';
 import { LangSwitcherComponent } from './lang-switcher/lang-switcher.component';
-import { ContactFormComponent, CONTACT_EMAIL } from './contact/contact-form.component';
+import { ContactFormComponent } from './contact/contact-form.component';
+import { PipelineComponent } from './pipeline/pipeline.component';
+import { ApiDemoComponent } from './api-demo/api-demo.component';
+import { ScopeWizardComponent } from './wizard/scope-wizard.component';
+import { CommandPaletteComponent } from './command-palette/command-palette.component';
 import { I18nService } from './i18n/i18n.service';
+import { ThemeService } from './core/theme.service';
+import { InquiryService } from './core/inquiry.service';
 
-export const SECTION_IDS = ['start', 'leistungen', 'vorgehen', 'arbeitsweise', 'technologien', 'faq', 'kontakt'] as const;
+export const SECTION_IDS = ['start', 'leistungen', 'demo', 'vorgehen', 'arbeitsweise', 'technologien', 'projekt-check', 'faq', 'kontakt'] as const;
 
 @Component({
   selector: 'app-root',
-  imports: [RevealDirective, ParticlesComponent, IconComponent, LangSwitcherComponent, ContactFormComponent],
+  imports: [RevealDirective, IconComponent, LangSwitcherComponent, ContactFormComponent, PipelineComponent, ApiDemoComponent, ScopeWizardComponent, CommandPaletteComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
   readonly i18n = inject(I18nService);
-  readonly email = CONTACT_EMAIL;
+  readonly theme = inject(ThemeService);
+  readonly email = inject(InquiryService).email;
   readonly year = new Date().getFullYear();
   readonly scrolled = signal(false);
   readonly menuOpen = signal(false);
   readonly activeSection = signal<string>('start');
   readonly openFaq = signal<number | null>(0);
+  readonly openExample = signal<number | null>(null);
+  readonly palette = viewChild.required(CommandPaletteComponent);
 
   @HostListener('window:scroll')
   onScroll(): void {
@@ -35,7 +43,7 @@ export class App {
   }
 
   @HostListener('window:resize')
-  onResize(): void { if (window.innerWidth > 960) this.menuOpen.set(false); }
+  onResize(): void { if (window.innerWidth > 1100) this.menuOpen.set(false); }
 
   @HostListener('document:keydown.escape')
   onEscape(): void { this.menuOpen.set(false); }
@@ -50,4 +58,5 @@ export class App {
   }
 
   toggleFaq(i: number): void { this.openFaq.update(v => (v === i ? null : i)); }
+  toggleExample(i: number): void { this.openExample.update(v => (v === i ? null : i)); }
 }

@@ -40,7 +40,11 @@
   </div>
   @if (showError('privacy')) { <p class="field__err">{{ t.errPrivacy }}</p> }
   @if (submitted() && form.invalid) { <p class="form__error" role="alert">{{ t.errSummary }}</p> }
-  @if (sent()) { <p class="form__ok" role="status">{{ t.success }} <a [href]="'mailto:' + email">{{ email }}</a>.</p> }
-  <button class="btn btn--primary btn--block" type="submit">{{ t.submit }}</button>
-  <p class="form__hint">{{ t.hint }}</p>
+  @switch (result()) {
+    @case ('mailto') { <p class="form__ok" role="status">{{ t.success }} <a [href]="'mailto:' + email">{{ email }}</a>.</p> }
+    @case ('sent') { <p class="form__ok" role="status">{{ t.sent }}</p> }
+    @case ('failed') { <p class="form__error" role="alert">{{ t.failed }} <a [href]="'mailto:' + email">{{ email }}</a>.</p> }
+  }
+  <button class="btn btn--primary btn--block" type="submit" [disabled]="sending()">{{ sending() ? t.sending : t.submit }}</button>
+  <p class="form__hint">{{ inquiry.usesEndpoint ? t.hintEndpoint : t.hint }}</p>
 </form>

@@ -8,13 +8,25 @@
     </a>
     <nav id="main-menu" class="nav__links" [class.open]="menuOpen()" [attr.aria-label]="t.a11y.mainNav">
       <a href="#leistungen" [class.active]="activeSection() === 'leistungen'" (click)="scrollTo('leistungen', $event)">{{ t.nav.services }}</a>
+      <a href="#demo" [class.active]="activeSection() === 'demo'" (click)="scrollTo('demo', $event)">{{ t.nav.demo }}</a>
       <a href="#vorgehen" [class.active]="activeSection() === 'vorgehen'" (click)="scrollTo('vorgehen', $event)">{{ t.nav.process }}</a>
-      <a href="#arbeitsweise" [class.active]="activeSection() === 'arbeitsweise'" (click)="scrollTo('arbeitsweise', $event)">{{ t.nav.why }}</a>
-      <a href="#technologien" [class.active]="activeSection() === 'technologien'" (click)="scrollTo('technologien', $event)">{{ t.nav.tech }}</a>
+      <a href="#projekt-check" [class.active]="activeSection() === 'projekt-check'" (click)="scrollTo('projekt-check', $event)">{{ t.nav.scoping }}</a>
       <a href="#faq" [class.active]="activeSection() === 'faq'" (click)="scrollTo('faq', $event)">{{ t.nav.faq }}</a>
       <a href="#kontakt" class="btn btn--primary btn--sm nav__cta" (click)="scrollTo('kontakt', $event)">{{ t.nav.contact }}</a>
     </nav>
     <div class="nav__tools">
+      <button type="button" class="icon-btn icon-btn--k" (click)="palette().show()" [attr.aria-label]="t.a11y.openPalette" [title]="t.a11y.openPalette">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <kbd class="kbd-hint" aria-hidden="true">Ctrl K</kbd>
+      </button>
+      <button type="button" class="icon-btn theme-toggle" (click)="theme.toggle()"
+              [attr.aria-label]="theme.theme() === 'dark' ? t.a11y.themeToLight : t.a11y.themeToDark" [title]="theme.theme() === 'dark' ? t.a11y.themeToLight : t.a11y.themeToDark">
+        @if (theme.theme() === 'dark') {
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        } @else {
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+        }
+      </button>
       <app-lang-switcher />
       <button class="nav__toggle" type="button" [class.is-open]="menuOpen()" [attr.aria-expanded]="menuOpen()"
               aria-controls="main-menu" [attr.aria-label]="t.a11y.menu" (click)="menuOpen.set(!menuOpen())">
@@ -24,22 +36,26 @@
   </div>
 </header>
 
+<app-command-palette (navigate)="scrollTo($event)" />
+
 <main id="main" tabindex="-1">
   <section id="start" class="hero">
-    <app-particles />
     <div class="hero__glow" aria-hidden="true"></div>
-    <div class="container hero__content">
-      <p class="eyebrow" appReveal>{{ t.hero.eyebrow }}</p>
-      <p class="hero__tagline gradient-text" appReveal [revealDelay]="60">{{ t.hero.tagline }}</p>
-      <h1 appReveal [revealDelay]="120">{{ t.hero.title }}</h1>
-      <p class="hero__lead" appReveal [revealDelay]="180">{{ t.hero.lead }}</p>
-      <div class="hero__cta" appReveal [revealDelay]="240">
-        <a href="#kontakt" class="btn btn--primary" (click)="scrollTo('kontakt', $event)">{{ t.hero.ctaPrimary }}</a>
-        <a href="#leistungen" class="btn btn--ghost" (click)="scrollTo('leistungen', $event)">{{ t.hero.ctaSecondary }}</a>
+    <div class="container hero__grid">
+      <div class="hero__content">
+        <p class="eyebrow" appReveal>{{ t.hero.eyebrow }}</p>
+        <p class="hero__tagline gradient-text" appReveal [revealDelay]="60">{{ t.hero.tagline }}</p>
+        <h1 appReveal [revealDelay]="120">{{ t.hero.title }}</h1>
+        <p class="hero__lead" appReveal [revealDelay]="180">{{ t.hero.lead }}</p>
+        <div class="hero__cta" appReveal [revealDelay]="240">
+          <a href="#projekt-check" class="btn btn--primary" (click)="scrollTo('projekt-check', $event)">{{ t.hero.ctaPrimary }}</a>
+          <a href="#leistungen" class="btn btn--ghost" (click)="scrollTo('leistungen', $event)">{{ t.hero.ctaSecondary }}</a>
+        </div>
+        <ul class="hero__facts" appReveal [revealDelay]="300">
+          @for (f of t.hero.facts; track $index) { <li><span class="dot" aria-hidden="true"></span>{{ f }}</li> }
+        </ul>
       </div>
-      <ul class="hero__facts" appReveal [revealDelay]="300">
-        @for (f of t.hero.facts; track $index) { <li><span class="dot" aria-hidden="true"></span>{{ f }}</li> }
-      </ul>
+      <div class="hero__visual" appReveal [revealDelay]="200"><app-pipeline /></div>
     </div>
   </section>
 
@@ -52,18 +68,42 @@
       </header>
       <div class="cards">
         @for (s of t.services.items; track s.icon; let i = $index) {
-          <article class="card" appReveal [revealDelay]="i * 60">
+          <article class="card" [class.is-open]="openExample() === i" appReveal [revealDelay]="i * 60">
             <div class="card__icon"><app-icon [name]="s.icon" /></div>
             <h3>{{ s.title }}</h3>
             <p>{{ s.text }}</p>
             <ul class="tags">@for (tag of s.tags; track tag) {<li>{{ tag }}</li>}</ul>
+            <button type="button" class="card__toggle" [attr.aria-expanded]="openExample() === i" [attr.aria-controls]="'example-' + i" (click)="toggleExample(i)">
+              {{ openExample() === i ? t.services.exampleHide : t.services.exampleShow }}<span aria-hidden="true" class="card__chev"></span>
+            </button>
+            <div class="card__example" [id]="'example-' + i" [attr.inert]="openExample() === i ? null : ''">
+              <div>
+                <p class="card__note">{{ t.services.exampleNote }}</p>
+                <dl>
+                  <dt>{{ t.services.problem }}</dt><dd>{{ s.example.problem }}</dd>
+                  <dt>{{ t.services.solution }}</dt><dd>{{ s.example.solution }}</dd>
+                  <dt>{{ t.services.outcome }}</dt><dd>{{ s.example.outcome }}</dd>
+                </dl>
+              </div>
+            </div>
           </article>
         }
       </div>
     </div>
   </section>
 
-  <section id="vorgehen" class="section section--alt">
+  <section id="demo" class="section section--alt">
+    <div class="container">
+      <header class="section__head" appReveal>
+        <p class="eyebrow">{{ t.demo.eyebrow }}</p>
+        <h2>{{ t.demo.title }}</h2>
+        <p>{{ t.demo.lead }}</p>
+      </header>
+      <div appReveal><app-api-demo /></div>
+    </div>
+  </section>
+
+  <section id="vorgehen" class="section">
     <div class="container">
       <header class="section__head" appReveal>
         <p class="eyebrow">{{ t.process.eyebrow }}</p>
@@ -76,13 +116,14 @@
             <span class="step__num">0{{ i + 1 }}</span>
             <h3>{{ s.title }}</h3>
             <p>{{ s.text }}</p>
+            <p class="step__result"><strong>{{ t.process.resultLabel }}:</strong> {{ s.result }}</p>
           </li>
         }
       </ol>
     </div>
   </section>
 
-  <section id="arbeitsweise" class="section">
+  <section id="arbeitsweise" class="section section--alt">
     <div class="container">
       <header class="section__head" appReveal>
         <p class="eyebrow">{{ t.why.eyebrow }}</p>
@@ -102,7 +143,7 @@
     </div>
   </section>
 
-  <section id="technologien" class="section section--alt">
+  <section id="technologien" class="section">
     <div class="container">
       <header class="section__head" appReveal>
         <p class="eyebrow">{{ t.tech.eyebrow }}</p>
@@ -117,6 +158,17 @@
           </div>
         }
       </div>
+    </div>
+  </section>
+
+  <section id="projekt-check" class="section section--alt">
+    <div class="container wizard-layout">
+      <header class="section__head" appReveal>
+        <p class="eyebrow">{{ t.wizard.eyebrow }}</p>
+        <h2>{{ t.wizard.title }}</h2>
+        <p>{{ t.wizard.lead }}</p>
+      </header>
+      <div appReveal><app-scope-wizard /></div>
     </div>
   </section>
 
@@ -169,7 +221,7 @@
       <span class="brand"><span class="brand__mark" aria-hidden="true">C</span><span class="brand__text">Cyulater</span></span>
       <p>{{ t.footer.claim }}</p>
     </div>
-    <p class="footer__copy">© {{ year }} Cyulater</p>
+    <p class="footer__copy">© {{ year }} Cyulater · <span class="footer__tip">{{ t.footer.shortcut }}</span></p>
     <nav [attr.aria-label]="t.a11y.legalNav">
       <a href="#impressum" [title]="t.footer.placeholder">{{ t.footer.imprint }}</a>
       <a href="#datenschutz" [title]="t.footer.placeholder">{{ t.footer.privacy }}</a>
