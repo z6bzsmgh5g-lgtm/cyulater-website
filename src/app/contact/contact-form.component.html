@@ -1,0 +1,46 @@
+@let t = i18n.t().contact;
+<form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="form__row">
+    <div class="field">
+      <label for="cf-name">{{ t.name }} <span class="req" aria-hidden="true">*</span></label>
+      <input id="cf-name" formControlName="name" autocomplete="name" required
+             [attr.aria-invalid]="showError('name')" [attr.aria-describedby]="showError('name') ? 'cf-name-err' : null">
+      @if (showError('name')) { <p class="field__err" id="cf-name-err">{{ t.errName }}</p> }
+    </div>
+    <div class="field">
+      <label for="cf-email">{{ t.email }} <span class="req" aria-hidden="true">*</span></label>
+      <input id="cf-email" type="email" formControlName="email" autocomplete="email" required
+             [attr.aria-invalid]="showError('email')" [attr.aria-describedby]="showError('email') ? 'cf-email-err' : null">
+      @if (showError('email')) { <p class="field__err" id="cf-email-err">{{ t.errEmail }}</p> }
+    </div>
+  </div>
+  <div class="form__row">
+    <div class="field">
+      <label for="cf-company">{{ t.company }}</label>
+      <input id="cf-company" formControlName="company" autocomplete="organization">
+    </div>
+    <div class="field">
+      <label for="cf-topic">{{ t.topic }}</label>
+      <select id="cf-topic" formControlName="topic">
+        <option value="">{{ t.topicPlaceholder }}</option>
+        @for (s of i18n.t().services.items; track s.icon) { <option [value]="s.title">{{ s.title }}</option> }
+        <option [value]="t.topicOther">{{ t.topicOther }}</option>
+      </select>
+    </div>
+  </div>
+  <div class="field">
+    <label for="cf-message">{{ t.message }} <span class="req" aria-hidden="true">*</span></label>
+    <textarea id="cf-message" rows="5" formControlName="message" required
+              [attr.aria-invalid]="showError('message')" [attr.aria-describedby]="showError('message') ? 'cf-message-err' : null"></textarea>
+    @if (showError('message')) { <p class="field__err" id="cf-message-err">{{ t.errMessage }}</p> }
+  </div>
+  <div class="field field--check">
+    <input id="cf-privacy" type="checkbox" formControlName="privacy" [attr.aria-invalid]="showError('privacy')">
+    <label for="cf-privacy">{{ t.privacy }} <span class="req" aria-hidden="true">*</span></label>
+  </div>
+  @if (showError('privacy')) { <p class="field__err">{{ t.errPrivacy }}</p> }
+  @if (submitted() && form.invalid) { <p class="form__error" role="alert">{{ t.errSummary }}</p> }
+  @if (sent()) { <p class="form__ok" role="status">{{ t.success }} <a [href]="'mailto:' + email">{{ email }}</a>.</p> }
+  <button class="btn btn--primary btn--block" type="submit">{{ t.submit }}</button>
+  <p class="form__hint">{{ t.hint }}</p>
+</form>

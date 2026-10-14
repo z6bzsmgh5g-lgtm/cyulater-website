@@ -1,0 +1,178 @@
+@let t = i18n.t();
+<a class="skip-link" href="#main" (click)="scrollTo('main', $event)">{{ t.a11y.skip }}</a>
+
+<header class="nav" [class.nav--scrolled]="scrolled() || menuOpen()">
+  <div class="container nav__inner">
+    <a href="#start" class="brand" (click)="scrollTo('start', $event)" [attr.aria-label]="t.a11y.home">
+      <span class="brand__mark" aria-hidden="true">C</span><span class="brand__text">Cyulater</span>
+    </a>
+    <nav id="main-menu" class="nav__links" [class.open]="menuOpen()" [attr.aria-label]="t.a11y.mainNav">
+      <a href="#leistungen" [class.active]="activeSection() === 'leistungen'" (click)="scrollTo('leistungen', $event)">{{ t.nav.services }}</a>
+      <a href="#vorgehen" [class.active]="activeSection() === 'vorgehen'" (click)="scrollTo('vorgehen', $event)">{{ t.nav.process }}</a>
+      <a href="#arbeitsweise" [class.active]="activeSection() === 'arbeitsweise'" (click)="scrollTo('arbeitsweise', $event)">{{ t.nav.why }}</a>
+      <a href="#technologien" [class.active]="activeSection() === 'technologien'" (click)="scrollTo('technologien', $event)">{{ t.nav.tech }}</a>
+      <a href="#faq" [class.active]="activeSection() === 'faq'" (click)="scrollTo('faq', $event)">{{ t.nav.faq }}</a>
+      <a href="#kontakt" class="btn btn--primary btn--sm nav__cta" (click)="scrollTo('kontakt', $event)">{{ t.nav.contact }}</a>
+    </nav>
+    <div class="nav__tools">
+      <app-lang-switcher />
+      <button class="nav__toggle" type="button" [class.is-open]="menuOpen()" [attr.aria-expanded]="menuOpen()"
+              aria-controls="main-menu" [attr.aria-label]="t.a11y.menu" (click)="menuOpen.set(!menuOpen())">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <section id="start" class="hero">
+    <app-particles />
+    <div class="hero__glow" aria-hidden="true"></div>
+    <div class="container hero__content">
+      <p class="eyebrow" appReveal>{{ t.hero.eyebrow }}</p>
+      <p class="hero__tagline gradient-text" appReveal [revealDelay]="60">{{ t.hero.tagline }}</p>
+      <h1 appReveal [revealDelay]="120">{{ t.hero.title }}</h1>
+      <p class="hero__lead" appReveal [revealDelay]="180">{{ t.hero.lead }}</p>
+      <div class="hero__cta" appReveal [revealDelay]="240">
+        <a href="#kontakt" class="btn btn--primary" (click)="scrollTo('kontakt', $event)">{{ t.hero.ctaPrimary }}</a>
+        <a href="#leistungen" class="btn btn--ghost" (click)="scrollTo('leistungen', $event)">{{ t.hero.ctaSecondary }}</a>
+      </div>
+      <ul class="hero__facts" appReveal [revealDelay]="300">
+        @for (f of t.hero.facts; track $index) { <li><span class="dot" aria-hidden="true"></span>{{ f }}</li> }
+      </ul>
+    </div>
+  </section>
+
+  <section id="leistungen" class="section">
+    <div class="container">
+      <header class="section__head" appReveal>
+        <p class="eyebrow">{{ t.services.eyebrow }}</p>
+        <h2>{{ t.services.title }}</h2>
+        <p>{{ t.services.lead }}</p>
+      </header>
+      <div class="cards">
+        @for (s of t.services.items; track s.icon; let i = $index) {
+          <article class="card" appReveal [revealDelay]="i * 60">
+            <div class="card__icon"><app-icon [name]="s.icon" /></div>
+            <h3>{{ s.title }}</h3>
+            <p>{{ s.text }}</p>
+            <ul class="tags">@for (tag of s.tags; track tag) {<li>{{ tag }}</li>}</ul>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section id="vorgehen" class="section section--alt">
+    <div class="container">
+      <header class="section__head" appReveal>
+        <p class="eyebrow">{{ t.process.eyebrow }}</p>
+        <h2>{{ t.process.title }}</h2>
+        <p>{{ t.process.lead }}</p>
+      </header>
+      <ol class="steps">
+        @for (s of t.process.steps; track $index; let i = $index) {
+          <li class="step" appReveal [revealDelay]="i * 90">
+            <span class="step__num">0{{ i + 1 }}</span>
+            <h3>{{ s.title }}</h3>
+            <p>{{ s.text }}</p>
+          </li>
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section id="arbeitsweise" class="section">
+    <div class="container">
+      <header class="section__head" appReveal>
+        <p class="eyebrow">{{ t.why.eyebrow }}</p>
+        <h2>{{ t.why.title }}</h2>
+        <p>{{ t.why.lead }}</p>
+      </header>
+      <div class="benefits">
+        @for (b of t.why.items; track $index; let i = $index) {
+          <div class="benefit" appReveal [revealDelay]="i * 50">
+            <span class="benefit__check" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            </span>
+            <div><h3>{{ b.title }}</h3><p>{{ b.text }}</p></div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section id="technologien" class="section section--alt">
+    <div class="container">
+      <header class="section__head" appReveal>
+        <p class="eyebrow">{{ t.tech.eyebrow }}</p>
+        <h2>{{ t.tech.title }}</h2>
+        <p>{{ t.tech.lead }}</p>
+      </header>
+      <div class="tech">
+        @for (g of t.tech.groups; track $index; let i = $index) {
+          <div class="tech__group" appReveal [revealDelay]="i * 60">
+            <h3>{{ g.title }}</h3>
+            <ul class="chips">@for (it of g.items; track it) { <li>{{ it }}</li> }</ul>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="section">
+    <div class="container container--narrow">
+      <header class="section__head" appReveal>
+        <p class="eyebrow">{{ t.faq.eyebrow }}</p>
+        <h2>{{ t.faq.title }}</h2>
+      </header>
+      <div class="faq">
+        @for (f of t.faq.items; track $index; let i = $index) {
+          <div class="faq__item" [class.open]="openFaq() === i">
+            <h3>
+              <button type="button" [id]="'faq-q-' + i" [attr.aria-expanded]="openFaq() === i"
+                      [attr.aria-controls]="'faq-a-' + i" (click)="toggleFaq(i)">
+                <span>{{ f.q }}</span><span class="faq__icon" aria-hidden="true"></span>
+              </button>
+            </h3>
+            <div class="faq__answer" [id]="'faq-a-' + i" role="region" [attr.aria-labelledby]="'faq-q-' + i" [attr.inert]="openFaq() === i ? null : ''">
+              <div><p>{{ f.a }}</p></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section id="kontakt" class="section section--contact">
+    <div class="container contact">
+      <div class="contact__intro" appReveal>
+        <p class="eyebrow">{{ t.contact.eyebrow }}</p>
+        <h2>{{ t.contact.title }}</h2>
+        <p class="contact__lead">{{ t.contact.lead }}</p>
+        <ul class="contact__points">
+          @for (p of t.contact.points; track $index) { <li><span class="dot" aria-hidden="true"></span>{{ p }}</li> }
+        </ul>
+        <p class="contact__mail">
+          <a [href]="'mailto:' + email">{{ email }}</a>
+          <small class="placeholder-note">{{ t.contact.placeholderNote }}</small>
+        </p>
+      </div>
+      <div appReveal [revealDelay]="120"><app-contact-form /></div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <span class="brand"><span class="brand__mark" aria-hidden="true">C</span><span class="brand__text">Cyulater</span></span>
+      <p>{{ t.footer.claim }}</p>
+    </div>
+    <p class="footer__copy">© {{ year }} Cyulater</p>
+    <nav [attr.aria-label]="t.a11y.legalNav">
+      <a href="#impressum" [title]="t.footer.placeholder">{{ t.footer.imprint }}</a>
+      <a href="#datenschutz" [title]="t.footer.placeholder">{{ t.footer.privacy }}</a>
+    </nav>
+  </div>
+</footer>
