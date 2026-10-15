@@ -2,11 +2,11 @@ import { DOCUMENT, Injectable, InjectionToken, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { Lang } from '../i18n/translations';
 
-export interface InquiryConfig { endpoint: string; email: string; timeoutMs: number; }
+export interface InquiryConfig { endpoint: string; email: string; timeoutMs: number; mode?: 'cors' | 'no-cors'; }
 
 export const INQUIRY_CONFIG = new InjectionToken<InquiryConfig>('INQUIRY_CONFIG', {
   providedIn: 'root',
-  factory: () => ({ endpoint: environment.inquiryEndpoint, email: environment.contactEmail, timeoutMs: environment.requestTimeoutMs }),
+  factory: () => ({ endpoint: environment.inquiryEndpoint, mode: environment.inquiryMode, email: environment.contactEmail, timeoutMs: environment.requestTimeoutMs }),
 });
 
 /** Structured inquiry – the contract for a future backend (e.g. Jira issue creation). */
@@ -54,6 +54,11 @@ export class InquiryService {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), this.config.timeoutMs);
     try {
+      if (this.config.mode === 'no-cors') {
+        // Simple request (no preflight); response is opaque, so a resolved fetch counts as sent.
+        await fetch(this.config.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(p), signal: ctrl.signal });
+        return 'sent';
+      }
       const res = await fetch(this.config.endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },

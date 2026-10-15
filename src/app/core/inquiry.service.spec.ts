@@ -9,8 +9,8 @@ const payload: InquiryPayload = {
   details: { services: ['api'], scope: 'poc' }, summary: ['Topics: APIs', 'Scope: Proof of concept'],
 };
 
-function make(endpoint: string, timeoutMs = 1000) {
-  TestBed.configureTestingModule({ providers: [{ provide: INQUIRY_CONFIG, useValue: { endpoint, email: 'hi@example.com', timeoutMs } }] });
+function make(endpoint: string, timeoutMs = 1000, mode: 'cors' | 'no-cors' = 'cors') {
+  TestBed.configureTestingModule({ providers: [{ provide: INQUIRY_CONFIG, useValue: { endpoint, email: 'hi@example.com', timeoutMs, mode } }] });
   const s = TestBed.inject(InquiryService);
   const opened: string[] = [];
   s.openMail = h => { opened.push(h); };
@@ -57,6 +57,19 @@ describe('InquiryService', () => {
     expect(init.headers['Content-Type']).toBe('application/json');
     expect(JSON.parse(init.body)).toEqual(payload);
     expect(opened.length).toBe(0);
+  });
+
+  it('no-cors mode sends text/plain JSON without preflight and treats an opaque response as sent', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, type: 'opaque', status: 0 });
+    vi.stubGlobal('fetch', fetchMock);
+    const { s } = make('https://api-private.atlassian.com/automation/webhooks/jira/a/b/c/SECRET', 1000, 'no-cors');
+    await expect(s.submit(payload)).resolves.toBe('sent');
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init.mode).toBe('no-cors');
+    expect(init.headers['Content-Type']).toMatch(/^text\/plain/);
+    expect(JSON.parse(init.body)).toEqual(payload);
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('network')));
+    await expect(s.submit(payload)).resolves.toBe('failed');
   });
 
   it('returns failed on non-2xx responses and network errors', async () => {

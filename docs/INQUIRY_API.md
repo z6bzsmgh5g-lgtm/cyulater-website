@@ -59,3 +59,18 @@ For `source: "contact-form"`, `details` contains only `{ "topic": "<service titl
 - Validate input server-side and add spam protection (rate limiting, honeypot or CAPTCHA).
 - Suggested Jira mapping: `summary` ← `subject`, `description` ← `summary` lines + `message` + contact,
   `labels` ← `details.services`, custom fields ← `details.*`.
+
+## Jira-Anbindung (Jira Automation, ohne eigenes Backend)
+
+1. In Jira: Projekt KAN → Automation → Regel erstellen → Trigger **Incoming webhook**
+   („No work items from the webhook“) → Aktion **Create work item** (Projekt KAN, Typ Task):
+   - Summary: `{{webhookData.subject}} – {{webhookData.contact.name}}`
+   - Description: `{{webhookData.contact.name}} <{{webhookData.contact.email}}> {{webhookData.contact.company}}` +
+     `{{webhookData.summary}}` + `{{webhookData.message}}`
+   - Labels: `website-anfrage` + `anfrage-projekt-check` (wenn `{{webhookData.source}}` = project-wizard), sonst `anfrage-kontakt`.
+2. Webhook-URL **mit angehängtem Secret** (`https://…/SECRET`) in `environment.ts` als `inquiryEndpoint`
+   eintragen und `inquiryMode: 'no-cors'` setzen.
+3. Prüfen im Audit-Log der Regel (der Endpoint antwortet immer 200).
+
+Hinweis: Das Secret ist dann im ausgelieferten JS sichtbar. Es berechtigt nur zum Auslösen dieser einen Regel
+(keine Jira-Zugangsdaten), ermöglicht aber Spam; bei Missbrauch Secret in der Regel neu generieren.
