@@ -14,6 +14,18 @@
       @if (showError('email')) { <p class="field__err" id="cf-email-err">{{ t.errEmail }}</p> }
     </div>
   </div>
+  <div class="field">
+    <label for="cf-type">{{ t.type }}</label>
+    <select id="cf-type" formControlName="type">
+      <option value="kontakt">{{ t.types.kontakt }}</option>
+      <option value="projekt-check">{{ t.types['projekt-check'] }}</option>
+      <option value="support">{{ t.types.support }}</option>
+    </select>
+  </div>
+  <div class="hp" aria-hidden="true">
+    <label for="cf-website">Website</label>
+    <input id="cf-website" formControlName="website" tabindex="-1" autocomplete="off">
+  </div>
   <div class="form__row">
     <div class="field">
       <label for="cf-company">{{ t.company }}</label>
@@ -43,6 +55,7 @@
   @switch (result()) {
     @case ('mailto') { <p class="form__ok" role="status">{{ t.success }} <a [href]="'mailto:' + email">{{ email }}</a>.</p> }
     @case ('sent') { <p class="form__ok" role="status">{{ t.sent }}</p> }
+    @case ('limited') { <p class="form__error" role="alert">{{ t.limited }} <a [href]="'mailto:' + email">{{ email }}</a>.</p> }
     @case ('failed') { <p class="form__error" role="alert">{{ t.failed }} <a [href]="'mailto:' + email">{{ email }}</a>.</p> }
   }
   <button class="btn btn--primary btn--block" type="submit" [disabled]="sending()">{{ sending() ? t.sending : t.submit }}</button>

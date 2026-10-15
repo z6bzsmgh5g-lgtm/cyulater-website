@@ -43,6 +43,7 @@ export interface Dict {
     name: string; email: string; company: string; topic: string; topicPlaceholder: string; topicOther: string; message: string;
     privacy: string; submit: string; sending: string; required: string; errName: string; errEmail: string; errMessage: string; errPrivacy: string;
     errSummary: string; success: string; sent: string; failed: string; hint: string; hintEndpoint: string;
+    type: string; types: Record<'kontakt' | 'projekt-check' | 'support', string>; limited: string;
   };
   palette: { title: string; placeholder: string; empty: string; hint: string; groupNav: string; groupActions: string; actLang: string; actTheme: string; actWizard: string; actMail: string; actTop: string };
   footer: { claim: string; imprint: string; privacy: string; placeholder: string; shortcut: string };
@@ -192,6 +193,8 @@ export const TRANSLATIONS: Record<Lang, Dict> = {
       success: 'Ihr E-Mail-Programm wurde geöffnet. Falls nicht, schreiben Sie bitte direkt an',
       sent: 'Vielen Dank! Ihre Anfrage wurde übermittelt.',
       failed: 'Die Übermittlung ist fehlgeschlagen. Bitte schreiben Sie direkt an',
+      type: 'Art der Anfrage', types: { kontakt: 'Kontaktanfrage', 'projekt-check': 'Projektanfrage', support: 'Support' },
+      limited: 'Sie haben bereits mehrere Anfragen gesendet. Bitte warten Sie einige Minuten oder schreiben Sie direkt an',
       hint: 'Der Versand erfolgt über Ihr E-Mail-Programm. Auf dieser Website werden keine Formulardaten gespeichert.',
       hintEndpoint: 'Ihre Angaben werden ausschließlich zur Bearbeitung Ihrer Anfrage übermittelt.',
     },
@@ -341,6 +344,8 @@ export const TRANSLATIONS: Record<Lang, Dict> = {
       success: 'Your email program has been opened. If not, please write directly to',
       sent: 'Thank you! Your request has been submitted.',
       failed: 'Submission failed. Please write directly to',
+      type: 'Type of request', types: { kontakt: 'Contact request', 'projekt-check': 'Project inquiry', support: 'Support' },
+      limited: 'You have already sent several requests. Please wait a few minutes or write directly to',
       hint: 'The request is sent via your email program. No form data is stored on this website.',
       hintEndpoint: 'Your details are transmitted solely to process your request.',
     },

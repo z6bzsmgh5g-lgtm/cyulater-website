@@ -1,16 +1,16 @@
 import { TestBed } from '@angular/core/testing';
-import { INQUIRY_CONFIG, InquiryPayload, InquiryService } from './inquiry.service';
+import { INQUIRY_CONFIG, InquiryPayload, InquiryService, toWire } from './inquiry.service';
 import { environment } from '../../environments/environment';
 
 const payload: InquiryPayload = {
-  schemaVersion: 1, source: 'project-wizard', lang: 'en', submittedAt: '2026-10-15T00:00:00.000Z',
+  schemaVersion: 1, source: 'project-wizard', type: 'projekt-check', lang: 'en', submittedAt: '2026-10-15T00:00:00.000Z',
   contact: { name: 'Jane Doe', email: 'jane@corp.example', company: 'Corp' },
   subject: 'Project check: APIs – Jane Doe', message: 'Hello',
   details: { services: ['api'], scope: 'poc' }, summary: ['Topics: APIs', 'Scope: Proof of concept'],
 };
 
-function make(endpoint: string, timeoutMs = 1000, mode: 'cors' | 'no-cors' = 'cors') {
-  TestBed.configureTestingModule({ providers: [{ provide: INQUIRY_CONFIG, useValue: { endpoint, email: 'hi@example.com', timeoutMs, mode } }] });
+function make(endpoint: string, timeoutMs = 1000, mode: 'cors' | 'no-cors' = 'cors', rateLimit?: { max: number; windowMs: number }) {
+  TestBed.configureTestingModule({ providers: [{ provide: INQUIRY_CONFIG, useValue: { endpoint, email: 'hi@example.com', timeoutMs, mode, rateLimit } }] });
   const s = TestBed.inject(InquiryService);
   const opened: string[] = [];
   s.openMail = h => { opened.push(h); };
@@ -55,7 +55,7 @@ describe('InquiryService', () => {
     expect(url).toBe('https://hooks.example.com/inquiry');
     expect(init.method).toBe('POST');
     expect(init.headers['Content-Type']).toBe('application/json');
-    expect(JSON.parse(init.body)).toEqual(payload);
+    expect(JSON.parse(init.body)).toEqual(toWire(payload));
     expect(opened.length).toBe(0);
   });
 
@@ -67,9 +67,31 @@ describe('InquiryService', () => {
     const [, init] = fetchMock.mock.calls[0];
     expect(init.mode).toBe('no-cors');
     expect(init.headers['Content-Type']).toMatch(/^text\/plain/);
-    expect(JSON.parse(init.body)).toEqual(payload);
+    expect(JSON.parse(init.body)).toEqual(toWire(payload));
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('network')));
     await expect(s.submit(payload)).resolves.toBe('failed');
+  });
+
+  it('wire format flattens summary and precomputes Jira labels', () => {
+    const w = toWire(payload);
+    expect(w.summary).toBe('Topics: APIs\nScope: Proof of concept');
+    expect(w.label).toBe('anfrage-projekt-check');
+    expect(w.labels).toEqual(['website-anfrage', 'anfrage-projekt-check']);
+    expect(toWire({ ...payload, contact: { name: 'a', email: 'b' } }).contact.company).toBe('');
+  });
+
+  it('rate-limits endpoint submissions per browser', async () => {
+    localStorage.removeItem('cyulater.inquiry.sent');
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+    const { s } = make('https://api.example.com/inquiries', 1000, 'cors', { max: 2, windowMs: 60_000 });
+    await expect(s.submit(payload)).resolves.toBe('sent');
+    await expect(s.submit(payload)).resolves.toBe('sent');
+    await expect(s.submit(payload)).resolves.toBe('limited');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    localStorage.setItem('cyulater.inquiry.sent', JSON.stringify([Date.now() - 120_000, Date.now() - 120_000]));
+    await expect(s.submit(payload)).resolves.toBe('sent');
+    localStorage.removeItem('cyulater.inquiry.sent');
   });
 
   it('returns failed on non-2xx responses and network errors', async () => {

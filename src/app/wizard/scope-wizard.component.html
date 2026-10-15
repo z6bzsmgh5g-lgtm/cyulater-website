@@ -111,8 +111,8 @@
             <strong>{{ w.summaryTitle }}</strong>
             <ul>@for (l of summaryLines(); track $index) { <li>{{ l }}</li> }</ul>
           </div>
-          @if (result() === 'failed') {
-            <p class="form__error" role="alert">{{ w.failed }} <a [href]="mailtoHref()">{{ w.failedLink }}</a></p>
+          @if (result() === 'failed' || result() === 'limited') {
+            <p class="form__error" role="alert">{{ result() === 'limited' ? t.contact.limited : w.failed }} <a [href]="mailtoHref()">{{ w.failedLink }}</a></p>
           }
         }
       }

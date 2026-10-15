@@ -16,9 +16,31 @@ function setup(endpoint = '') {
   return { fixture, comp: fixture.componentInstance, el: fixture.nativeElement as HTMLElement, opened };
 }
 
-const valid = { name: 'Max Muster', email: 'max@firma.de', company: 'Firma GmbH', topic: 'Data Engineering', message: 'Wir brauchen eine Datenpipeline.', privacy: true };
+const valid = { name: 'Max Muster', email: 'max@firma.de', company: 'Firma GmbH', type: 'kontakt' as const, website: '', topic: 'Data Engineering', message: 'Wir brauchen eine Datenpipeline.', privacy: true };
 
 describe('ContactFormComponent', () => {
+  it('maps the request type to source/type and the Jira label; support option exists', async () => {
+    const { fixture, comp, el } = setup('https://api.example.com/inquiries');
+    await fixture.whenStable();
+    expect([...el.querySelectorAll('#cf-type option')].map(o => (o as HTMLOptionElement).value)).toEqual(['kontakt', 'projekt-check', 'support']);
+    comp.form.setValue({ ...valid, type: 'support' });
+    const p = comp.buildPayload();
+    expect(p.source).toBe('contact-form');
+    expect(p.type).toBe('support');
+    expect(p.subject).toContain('Support');
+  });
+
+  it('silently drops submissions with a filled honeypot', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+    const { fixture, comp } = setup('https://api.example.com/inquiries');
+    await fixture.whenStable();
+    comp.form.setValue({ ...valid, website: 'http://spam.example' });
+    await comp.submit();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(comp.result()).toBe('sent');
+  });
+
   afterEach(() => vi.unstubAllGlobals());
 
   it('starts invalid and shows no errors before interaction', async () => {
@@ -85,7 +107,7 @@ describe('ContactFormComponent', () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe('https://api.example.com/inquiries');
     const body = JSON.parse(init.body);
-    expect(body).toMatchObject({ schemaVersion: 1, source: 'contact-form', lang: 'de', contact: { name: 'Max Muster', email: 'max@firma.de', company: 'Firma GmbH' }, details: { topic: 'Data Engineering' } });
+    expect(body).toMatchObject({ schemaVersion: 1, source: 'contact-form', lang: 'de', contact: { name: 'Max Muster', email: 'max@firma.de', company: 'Firma GmbH' }, details: { type: 'kontakt', topic: 'Data Engineering' }, type: 'kontakt', labels: ['website-anfrage', 'anfrage-kontakt'] });
     expect(comp.result()).toBe('sent');
     expect(comp.form.controls.name.value).toBe('');
     expect(el.querySelector('.form__ok')?.textContent).toContain(TRANSLATIONS.de.contact.sent);

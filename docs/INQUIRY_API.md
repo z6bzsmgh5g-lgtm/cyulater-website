@@ -74,3 +74,11 @@ For `source: "contact-form"`, `details` contains only `{ "topic": "<service titl
 
 Hinweis: Das Secret ist dann im ausgelieferten JS sichtbar. Es berechtigt nur zum Auslösen dieser einen Regel
 (keine Jira-Zugangsdaten), ermöglicht aber Spam; bei Missbrauch Secret in der Regel neu generieren.
+
+### Stand (aktiv)
+Der Endpoint ist in `environment.ts` gesetzt (`inquiryMode: 'no-cors'`). Gesendet wird das Wire-Format (`toWire`):
+`summary` als Text mit Zeilenumbrüchen, `summaryLines` (Array), `type` (`kontakt` | `projekt-check` | `support`),
+`label` (`anfrage-<type>`) und `labels` (`["website-anfrage", label]`); `contact.company` ist immer gesetzt (ggf. leer).
+Empfohlene Labels-Konfiguration der Regel (Weitere Felder):
+`{"update": {"labels": [{"add": "website-anfrage"}, {"add": "{{webhookData.label}}"}]}}`
+Spam-Bremse: Honeypot-Feld `website` im Kontaktformular, max. 3 Sendungen pro 10 Minuten je Browser.

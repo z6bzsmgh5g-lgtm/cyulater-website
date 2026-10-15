@@ -113,7 +113,7 @@ export class ScopeWizardComponent {
     const t = this.i18n.t();
     const svcTitles = this.services().map(id => t.services.items.find(s => s.icon === id)?.title ?? id);
     return {
-      schemaVersion: 1, source: 'project-wizard', lang: this.i18n.lang(), submittedAt: new Date().toISOString(),
+      schemaVersion: 1, source: 'project-wizard', type: 'projekt-check', lang: this.i18n.lang(), submittedAt: new Date().toISOString(),
       contact: { name: v.name.trim(), email: v.email.trim(), ...(v.company.trim() ? { company: v.company.trim() } : {}) },
       subject: `${t.wizard.eyebrow}: ${svcTitles.join(', ')} – ${v.name.trim()}`,
       message: v.message.trim(),
