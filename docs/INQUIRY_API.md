@@ -60,25 +60,29 @@ For `source: "contact-form"`, `details` contains only `{ "topic": "<service titl
 - Suggested Jira mapping: `summary` ← `subject`, `description` ← `summary` lines + `message` + contact,
   `labels` ← `details.services`, custom fields ← `details.*`.
 
-## Jira-Anbindung (Jira Automation, ohne eigenes Backend)
+## Jira Service Management (aktiv)
 
-1. In Jira: Projekt KAN → Automation → Regel erstellen → Trigger **Incoming webhook**
-   („No work items from the webhook“) → Aktion **Create work item** (Projekt KAN, Typ Task):
-   - Summary: `{{webhookData.subject}} – {{webhookData.contact.name}}`
-   - Description: `{{webhookData.contact.name}} <{{webhookData.contact.email}}> {{webhookData.contact.company}}` +
-     `{{webhookData.summary}}` + `{{webhookData.message}}`
-   - Labels: `website-anfrage` + `anfrage-projekt-check` (wenn `{{webhookData.source}}` = project-wizard), sonst `anfrage-kontakt`.
-2. Webhook-URL **mit angehängtem Secret** (`https://…/SECRET`) in `environment.ts` als `inquiryEndpoint`
-   eintragen und `inquiryMode: 'no-cors'` setzen.
-3. Prüfen im Audit-Log der Regel (der Endpoint antwortet immer 200).
+Formular/Projekt-Check → `fetch` (`mode: 'no-cors'`, `Content-Type: text/plain`, JSON-Body, keine Preflight-Anfrage)
+→ Jira-Automation-Regel **„Website-Anfragen“** (Trigger *Incoming webhook*, Secret als letztes URL-Segment)
+→ Service-Desk **Cyulater Service (CS)**, Portal https://cyulater.atlassian.net/servicedesk/customer/portal/1.
 
-Hinweis: Das Secret ist dann im ausgelieferten JS sichtbar. Es berechtigt nur zum Auslösen dieser einen Regel
-(keine Jira-Zugangsdaten), ermöglicht aber Spam; bei Missbrauch Secret in der Regel neu generieren.
+| `type` | Quelle | Anfragetyp (ID) |
+|---|---|---|
+| `kontakt` | Kontaktformular | Kontaktanfrage (4) |
+| `projekt-check` | Projekt-Check-Assistent | Projekt-Check (5) |
+| `support` | Kontaktformular | Support (6) |
 
-### Stand (aktiv)
-Der Endpoint ist in `environment.ts` gesetzt (`inquiryMode: 'no-cors'`). Gesendet wird das Wire-Format (`toWire`):
-`summary` als Text mit Zeilenumbrüchen, `summaryLines` (Array), `type` (`kontakt` | `projekt-check` | `support`),
-`label` (`anfrage-<type>`) und `labels` (`["website-anfrage", label]`); `contact.company` ist immer gesetzt (ggf. leer).
-Empfohlene Labels-Konfiguration der Regel (Weitere Felder):
-`{"update": {"labels": [{"add": "website-anfrage"}, {"add": "{{webhookData.label}}"}]}}`
-Spam-Bremse: Honeypot-Feld `website` im Kontaktformular, max. 3 Sendungen pro 10 Minuten je Browser.
+Regel: Anfrage im Namen von `{{webhookData.contact.email}}` (Kunde wird angelegt), Zusammenfassung
+`{{webhookData.subject}}` (z. B. „Kontaktanfrage: Data Engineering – Max Muster“), Beschreibung aus
+`contact.name/email/company`, `summary` (Text mit Zeilenumbrüchen) und `message`.
+
+Wire-Format (`toWire`): Payload oben plus `summary` als Text, `summaryLines` (Array), `type`, `label`
+(`anfrage-<type>`), `labels` (`["website-anfrage", label]`); `contact.company` immer gesetzt (ggf. leer).
+
+Hinweise
+- Der Webhook antwortet immer 200 (auch bei Fehlern); die Seite kann die Antwort nicht lesen und zeigt „gesendet“.
+  Kontrolle über das Audit-Log der Regel.
+- Das Secret steht im ausgelieferten JS. Es erlaubt nur das Auslösen dieser Regel (keine Jira-Zugangsdaten),
+  ermöglicht aber Spam → bei Missbrauch Secret in der Regel neu generieren und `environment.ts` aktualisieren.
+- Spam-Bremse: Honeypot-Feld `website` (Kontaktformular), max. 3 Sendungen je 10 Minuten pro Browser.
+- Ohne Endpoint (`inquiryEndpoint: ''`) wird weiterhin das E-Mail-Programm (mailto) geöffnet.

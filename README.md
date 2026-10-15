@@ -20,9 +20,9 @@ Deployment erfolgt automatisch per GitHub Actions bei Push auf `main`.
 - API-Demo-Konsole mit simulierten Requests/Responses
 - Projekt-Check (4-Schritte-Assistent) → strukturierte Anfrage
 - Schnellnavigation per Strg/⌘+K, Hell/Dunkel-Design (View Transitions), DE/EN zur Laufzeit
-- Anfragen an konfigurierbares Backend (`src/environments/environment.ts`), sonst mailto – siehe `docs/INQUIRY_API.md`
+- Anfragen (Kontakt / Projekt-Check / Support) landen per Jira-Automation-Webhook im Service-Desk **Cyulater Service (CS)**; ohne Endpoint mailto – siehe `docs/INQUIRY_API.md`
 
 ## Platzhalter
 - Kontakt-E-Mail: `contactEmail` in `src/environments/environment.ts` und JSON-LD in `src/index.html`
-- Backend-Endpunkt für Anfragen: `inquiryEndpoint` in `src/environments/environment.ts`
+- Anfrage-Endpunkt: `inquiryEndpoint` / `inquiryMode` in `src/environments/environment.ts` (aktuell Jira-Webhook, `no-cors`)
 - Impressum / Datenschutz: Seiten noch anlegen
