@@ -7,15 +7,16 @@ import { PipelineComponent } from './pipeline/pipeline.component';
 import { ApiDemoComponent } from './api-demo/api-demo.component';
 import { ScopeWizardComponent } from './wizard/scope-wizard.component';
 import { CommandPaletteComponent } from './command-palette/command-palette.component';
+import { FlowStudioComponent } from './flow-studio/flow-studio.component';
 import { I18nService } from './i18n/i18n.service';
 import { ThemeService } from './core/theme.service';
 import { InquiryService } from './core/inquiry.service';
 
-export const SECTION_IDS = ['start', 'leistungen', 'demo', 'vorgehen', 'arbeitsweise', 'technologien', 'projekt-check', 'faq', 'kontakt'] as const;
+export const SECTION_IDS = ['start', 'leistungen', 'demo', 'flow-studio', 'vorgehen', 'arbeitsweise', 'technologien', 'projekt-check', 'faq', 'kontakt'] as const;
 
 @Component({
   selector: 'app-root',
-  imports: [RevealDirective, IconComponent, LangSwitcherComponent, ContactFormComponent, PipelineComponent, ApiDemoComponent, ScopeWizardComponent, CommandPaletteComponent],
+  imports: [RevealDirective, IconComponent, LangSwitcherComponent, ContactFormComponent, PipelineComponent, ApiDemoComponent, ScopeWizardComponent, CommandPaletteComponent, FlowStudioComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

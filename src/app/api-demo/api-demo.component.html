@@ -26,7 +26,7 @@
         <header>
           <span class="console__label">{{ t.response }}</span>
           @if (state() === 'done') {
-            <span class="console__meta"><span class="status-pill">{{ call().status }} {{ call().statusText }}</span> {{ t.latency }}: {{ call().latencyMs }} ms</span>
+            <span class="console__meta"><span class="status-pill" [class.status-pill--err]="call().status >= 400">{{ call().status }} {{ call().statusText }}</span> {{ t.latency }}: {{ call().latencyMs }} ms</span>
           }
         </header>
         @switch (state()) {

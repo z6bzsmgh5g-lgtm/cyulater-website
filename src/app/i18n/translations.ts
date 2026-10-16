@@ -13,7 +13,7 @@ export interface ServiceItem {
 export interface Dict {
   meta: { title: string; description: string; ogLocale: string };
   a11y: { skip: string; home: string; menu: string; mainNav: string; legalNav: string; langSwitch: string; themeToLight: string; themeToDark: string; openPalette: string };
-  nav: { services: string; demo: string; process: string; scoping: string; faq: string; contact: string };
+  nav: { services: string; demo: string; flow: string; process: string; scoping: string; faq: string; contact: string };
   hero: { eyebrow: string; tagline: string; title: string; lead: string; ctaPrimary: string; ctaSecondary: string; facts: string[] };
   pipeline: {
     label: string; hint: string; sourcesTitle: string; coreTitle: string; targetsTitle: string;
@@ -24,6 +24,7 @@ export interface Dict {
     eyebrow: string; title: string; lead: string; note: string; request: string; response: string; send: string; sending: string; reset: string; status: string; latency: string; idle: string;
     endpoints: { id: string; label: string; desc: string }[];
   };
+  flow: { eyebrow: string; title: string; lead: string; loading: string; points: string[] };
   process: { eyebrow: string; title: string; lead: string; resultLabel: string; steps: { title: string; text: string; result: string }[] };
   why: { eyebrow: string; title: string; lead: string; items: { title: string; text: string }[] };
   tech: { eyebrow: string; title: string; lead: string; groups: { title: string; items: string[] }[] };
@@ -57,7 +58,7 @@ export const TRANSLATIONS: Record<Lang, Dict> = {
       ogLocale: 'de_DE',
     },
     a11y: { skip: 'Zum Inhalt springen', home: 'Cyulater – zum Seitenanfang', menu: 'Menü', mainNav: 'Hauptnavigation', legalNav: 'Rechtliches', langSwitch: 'Sprache wählen', themeToLight: 'Helles Design aktivieren', themeToDark: 'Dunkles Design aktivieren', openPalette: 'Schnellnavigation öffnen (Strg+K)' },
-    nav: { services: 'Leistungen', demo: 'API-Demo', process: 'Vorgehen', scoping: 'Projekt-Check', faq: 'FAQ', contact: 'Kontakt' },
+    nav: { services: 'Leistungen', demo: 'API-Demo', flow: 'Flow Studio', process: 'Vorgehen', scoping: 'Projekt-Check', faq: 'FAQ', contact: 'Kontakt' },
     hero: {
       eyebrow: 'IT-Dienstleistungen für Unternehmen', tagline: 'Build the impossible.',
       title: 'Ihre Daten, Systeme und KI – verbunden zu Prozessen, die funktionieren.',
@@ -106,7 +107,15 @@ export const TRANSLATIONS: Record<Lang, Dict> = {
         { id: 'orders', label: 'Daten abrufen', desc: 'Offene Bestellungen paginiert aus einem ERP lesen.' },
         { id: 'classify', label: 'KI-Klassifizierung', desc: 'Eine Kundenanfrage per KI einer Kategorie zuordnen.' },
         { id: 'issue', label: 'Jira-Vorgang', desc: 'Aus einer Anfrage automatisch einen Jira-Vorgang erzeugen.' },
+        { id: 'etl', label: 'ETL-Job starten', desc: 'Einen Ladeprozess asynchron anstoßen: Die API bestätigt sofort (202) und liefert eine Status-URL.' },
+        { id: 'ratelimit', label: 'Rate-Limit (429)', desc: 'Auch Fehler sind Teil des Vertrags: maschinenlesbares Problem-JSON mit Retry-After statt kryptischer Meldung.' },
       ],
+    },
+    flow: {
+      eyebrow: 'Flow Studio', title: 'Datenflüsse zum Anfassen.',
+      lead: 'Bauen Sie eine Integration wie in Apache NiFi: Quellen, Verarbeitungsschritte und Ziele verbinden, starten und zusehen, wie Datensätze durch den Fluss wandern. Der Flow-Guide erklärt jeden Schritt in Klartext.',
+      loading: 'Flow Studio wird geladen …',
+      points: ['15 Prozessoren', 'Fehler, Retry & Backoff', 'Datenherkunft je Schritt'],
     },
     process: {
       eyebrow: 'Vorgehen', title: 'Erst klären, dann investieren', lead: 'Klare Phasen mit definiertem Ergebnis. Nach jeder Phase entscheiden Sie, ob es weitergeht.', resultLabel: 'Ergebnis',
@@ -208,7 +217,7 @@ export const TRANSLATIONS: Record<Lang, Dict> = {
       ogLocale: 'en_US',
     },
     a11y: { skip: 'Skip to content', home: 'Cyulater – back to top', menu: 'Menu', mainNav: 'Main navigation', legalNav: 'Legal', langSwitch: 'Choose language', themeToLight: 'Switch to light theme', themeToDark: 'Switch to dark theme', openPalette: 'Open quick navigation (Ctrl+K)' },
-    nav: { services: 'Services', demo: 'API demo', process: 'Process', scoping: 'Project check', faq: 'FAQ', contact: 'Contact' },
+    nav: { services: 'Services', demo: 'API demo', flow: 'Flow Studio', process: 'Process', scoping: 'Project check', faq: 'FAQ', contact: 'Contact' },
     hero: {
       eyebrow: 'IT services for businesses', tagline: 'Build the impossible.',
       title: 'Your data, systems and AI – connected into processes that work.',
@@ -257,7 +266,15 @@ export const TRANSLATIONS: Record<Lang, Dict> = {
         { id: 'orders', label: 'Fetch data', desc: 'Read open orders from an ERP, paginated.' },
         { id: 'classify', label: 'AI classification', desc: 'Assign a customer request to a category using AI.' },
         { id: 'issue', label: 'Jira issue', desc: 'Automatically create a Jira issue from a request.' },
+        { id: 'etl', label: 'Start ETL job', desc: 'Trigger a load process asynchronously: the API acknowledges at once (202) and returns a status URL.' },
+        { id: 'ratelimit', label: 'Rate limit (429)', desc: 'Errors are part of the contract too: machine-readable problem JSON with Retry-After instead of a cryptic message.' },
       ],
+    },
+    flow: {
+      eyebrow: 'Flow Studio', title: 'Data flows you can touch.',
+      lead: 'Build an integration the Apache NiFi way: connect sources, processing steps and targets, press start and watch records travel through the flow. The flow guide explains every step in plain language.',
+      loading: 'Loading Flow Studio …',
+      points: ['15 processors', 'Errors, retry & backoff', 'Provenance for every step'],
     },
     process: {
       eyebrow: 'Process', title: 'Clarify first, then invest', lead: 'Clear phases with a defined result. After each phase you decide whether to continue.', resultLabel: 'Result',

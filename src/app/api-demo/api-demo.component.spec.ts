@@ -35,7 +35,7 @@ describe('ApiDemoComponent', () => {
   it('renders one tab per endpoint with the first selected', async () => {
     const { el } = await render();
     const tabs = el.querySelectorAll('[role=tab]');
-    expect(tabs.length).toBe(3);
+    expect(tabs.length).toBe(5);
     expect(tabs[0].getAttribute('aria-selected')).toBe('true');
     expect(el.querySelector('.console__idle')?.textContent).toContain(TRANSLATIONS.de.demo.idle);
     expect(el.querySelector('.console__note')?.textContent).toContain('simulierte');
@@ -69,9 +69,9 @@ describe('ApiDemoComponent', () => {
     expect(el.querySelector('.console__url code')?.textContent).toContain('/jira/issues');
     tabs[2].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
     await f.whenStable();
-    expect(c.selectedId()).toBe('orders');
+    expect(c.selectedId()).toBe('etl');
     tabs[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
-    expect(c.selectedId()).toBe('issue');
+    expect(c.selectedId()).toBe('ratelimit');
   });
 
   it('shows 201 Created for the Jira endpoint and supports reset', async () => {
@@ -83,5 +83,22 @@ describe('ApiDemoComponent', () => {
     expect(el.querySelector('.status-pill')?.textContent).toContain('201 Created');
     c.reset();
     expect(c.state()).toBe('idle');
+  });
+
+  it('shows async ETL (202) and a problem+json rate-limit error (429) styled as error', async () => {
+    const { f, el, c } = await render();
+    c.select('etl'); c.send();
+    await new Promise(r => setTimeout(r, 5));
+    await f.whenStable();
+    expect(el.querySelector('.status-pill')?.textContent).toContain('202 Accepted');
+    expect(el.querySelector('.code--response')?.textContent).toContain('statusUrl');
+    c.select('ratelimit'); c.send();
+    await new Promise(r => setTimeout(r, 5));
+    await f.whenStable();
+    const pill = el.querySelector('.status-pill')!;
+    expect(pill.textContent).toContain('429 Too Many Requests');
+    expect(pill.classList).toContain('status-pill--err');
+    expect(el.querySelector('.code--response')?.textContent).toContain('Retry-After');
+    expect(el.querySelector('.console__desc')?.textContent).toContain('Problem-JSON');
   });
 });

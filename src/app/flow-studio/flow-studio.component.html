@@ -1,0 +1,274 @@
+@let tx = T();
+@let ui = tx.ui;
+<div class="fs" [class.fs--compact]="compact()" [class.fs--connecting]="!!connectFrom()" [attr.data-state]="runState()">
+  <div class="fs__toolbar">
+    <div class="fs__templates" [class.tour-hl]="tourTarget() === 'templates'" role="group" [attr.aria-label]="ui['templates']">
+      <span class="fs__label">{{ ui['templates'] }}</span>
+      @for (id of templates; track id) {
+        <button type="button" class="chip" [class.is-active]="activeTemplate() === id" [attr.aria-pressed]="activeTemplate() === id"
+                [attr.data-template]="id" [title]="tx.templates[id].desc" (click)="loadTemplate(id)">{{ tx.templates[id].name }}</button>
+      }
+    </div>
+    <div class="fs__controls" [class.tour-hl]="tourTarget() === 'controls'" role="group" [attr.aria-label]="ui['start']">
+      @if (runState() === 'running') {
+        <button type="button" class="btn btn--primary btn--sm fs__run" data-action="pause" (click)="pause()">❚❚ {{ ui['pause'] }}</button>
+      } @else {
+        <button type="button" class="btn btn--primary btn--sm fs__run" data-action="start" (click)="start()">▶ {{ runState() === 'paused' ? ui['resume'] : ui['start'] }}</button>
+      }
+      <button type="button" class="btn btn--ghost btn--sm" data-action="step" (click)="stepOnce()">⏭ {{ ui['step'] }}</button>
+      <button type="button" class="btn btn--ghost btn--sm" data-action="reset" (click)="reset()" [disabled]="runState() === 'idle'">↺ {{ ui['reset'] }}</button>
+      <label class="fs__speed">{{ ui['speed'] }}
+        <input type="range" min="1" max="4" step="1" [value]="speed()" (input)="setSpeed($any($event.target).value)">
+      </label>
+      <button type="button" class="chip chip--toggle" data-action="errors" [class.is-active]="errorsOn()" [attr.aria-pressed]="errorsOn()" (click)="toggleErrors()">⚡ {{ ui['errors'] }}</button>
+      <button type="button" class="chip" data-action="tour" (click)="startTour()">? {{ ui['tour'] }}</button>
+    </div>
+  </div>
+
+  <div class="fs__body">
+    <aside class="fs__palette" [class.tour-hl]="tourTarget() === 'palette'" [attr.aria-label]="ui['palette']">
+      <h3 class="fs__title">{{ ui['palette'] }}</h3>
+      <p class="fs__hint">{{ ui['paletteHint'] }}</p>
+      @for (g of groups; track g.cat) {
+        <div class="pgroup">
+          <h4>{{ tx.categories[g.cat] }}</h4>
+          <ul>
+            @for (p of g.items; track p.type) {
+              <li>
+                <button type="button" class="proc" draggable="true" [attr.data-proc]="p.type" [title]="tx.procs[p.type].desc"
+                        [attr.aria-label]="tx.procs[p.type].name + ' ' + ui['add']"
+                        (dragstart)="onPaletteDragStart($event, p.type)" (click)="addProc(p.type)">
+                  <span class="glyph" [class]="'glyph glyph--' + p.category">{{ p.glyph }}</span>
+                  <span class="proc__name">{{ tx.procs[p.type].name }}</span>
+                  <span class="proc__plus" aria-hidden="true">+</span>
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </aside>
+
+    @if (!compact()) {
+      <div class="fs__canvas-wrap" #wrap [class.tour-hl]="tourTarget() === 'canvas'">
+        @if (connectFrom()) { <p class="fs__connect-hint" role="status">{{ ui['connectHint'] }}</p> }
+        <div class="fs__stage" [style.width.px]="W * scale()" [style.height.px]="H * scale()">
+        <div class="fs__canvas" #canvas role="group" [attr.aria-label]="ui['canvas']" [style.width.px]="W" [style.height.px]="H" [style.transform]="'scale(' + scale() + ')'"
+             (dragover)="onCanvasDragOver($event)" (drop)="onCanvasDrop($event)">
+          <svg class="fs__edges" [attr.viewBox]="'0 0 ' + W + ' ' + H" [attr.width]="W" [attr.height]="H" aria-hidden="true">
+            <defs>
+              <marker id="fs-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="edge-arrow"/></marker>
+              <linearGradient id="fs-grad" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#8a2be2"/><stop offset="1" stop-color="#d6507a"/></linearGradient>
+            </defs>
+            @for (v of edgeViews(); track v.e.id) {
+              <path class="edge" [class.edge--fail]="v.fail" [class.edge--flow]="flowingEdges().has(v.e.id) || queue(v.e.id) > 0" [attr.d]="v.d" marker-end="url(#fs-arrow)" [attr.data-edge]="v.e.id"/>
+            }
+            @if (dragLine(); as l) { <line class="edge edge--draft" [attr.x1]="l.x1" [attr.y1]="l.y1" [attr.x2]="l.x2" [attr.y2]="l.y2"/> }
+          </svg>
+          @for (v of edgeViews(); track v.e.id) {
+            <div class="elabel" [class.elabel--fail]="v.fail" [style.left.px]="v.mid.x" [style.top.px]="v.mid.y" [attr.data-edge-label]="v.e.id">
+              <span>{{ tx.rels[v.e.rel] ?? v.e.rel }}</span>
+              <b class="qbadge" [class.is-busy]="queue(v.e.id) > 0" [attr.aria-label]="ui['queue'] + ' ' + queue(v.e.id)" [title]="ui['queue']">{{ queue(v.e.id) }}</b>
+            </div>
+          }
+          @for (p of particles(); track p.id) {
+            <span class="ffdot" [class.ffdot--fail]="p.fail" [style.offset-path]="particlePath(p.d)" [style.animation-duration.ms]="p.dur" aria-hidden="true"></span>
+          }
+          @for (n of graph().nodes; track n.id) {
+            @let d = def(n);
+            @let s = stats(n.id);
+            <div class="node" [class]="'node node--' + d.category" [class.is-selected]="selectedId() === n.id" [class.is-active]="activeNodes().has(n.id)"
+                 [class.is-target]="!!connectFrom() && connectFrom()!.nodeId !== n.id" [class.is-source-port]="connectFrom()?.nodeId === n.id"
+                 [attr.data-node-id]="n.id" [attr.data-type]="n.type" tabindex="0" role="button" [attr.aria-pressed]="selectedId() === n.id"
+                 [attr.aria-label]="label(n) + ' – ' + ui['inLbl'] + ' ' + s.in + ', ' + ui['outLbl'] + ' ' + (s.out + s.delivered) + '. ' + ui['movedHint']"
+                 [style.left.px]="n.x" [style.top.px]="n.y"
+                 (pointerdown)="onNodePointerDown($event, n)" (pointermove)="onNodePointerMove($event)" (pointerup)="onNodePointerUp()" (keydown)="onNodeKey($event, n)">
+              <div class="node__head"><span [class]="'glyph glyph--' + d.category">{{ d.glyph }}</span><span class="node__name">{{ label(n) }}</span></div>
+              <div class="node__stats">
+                <span>{{ ui['inLbl'] }} <b>{{ s.in }}</b></span>
+                <span>{{ d.category === 'sink' ? ui['deliveredLbl'] : ui['outLbl'] }} <b>{{ d.category === 'sink' ? s.delivered : s.out }}</b></span>
+                @if (s.failed) { <span class="st--fail">✕ <b>{{ s.failed }}</b></span> }
+                @if (s.retries) { <span class="st--warn">↻ <b>{{ s.retries }}</b></span> }
+                @if (s.dropped) { <span class="st--drop">⌀ <b>{{ s.dropped }}</b></span> }
+              </div>
+              @if (d.category !== 'source') { <span class="port port--in" aria-hidden="true"></span> }
+              @for (rel of d.rels; track rel) {
+                <button type="button" class="port port--out" [class.port--fail]="isFail(rel)" [style.top.px]="portOffset(n, rel)"
+                        [attr.data-rel]="rel" [attr.aria-label]="ui['port'] + ' „' + rel + '“ – ' + label(n)"
+                        (pointerdown)="onPortDown($event, n, rel)" (pointermove)="onPortMove($event)" (pointerup)="onPortUp($event)" (click)="onPortClick($event, n, rel)">
+                  @if (!isLinked(n, rel)) { <span class="port__lbl">{{ rel }}</span> }
+                </button>
+              }
+            </div>
+          }
+          @if (!graph().nodes.length) { <p class="fs__empty">{{ ui['canvasEmpty'] }}</p> }
+        </div>
+        </div>
+      </div>
+      <aside class="fs__panel" [class.tour-hl]="tourTarget() === 'panel'" [attr.aria-label]="ui['config']">
+        <ng-container *ngTemplateOutlet="panelTpl" />
+      </aside>
+    } @else {
+      <ol class="fs__list" [class.tour-hl]="tourTarget() === 'canvas'" [attr.aria-label]="ui['canvas']">
+        @for (v of listViews(); track v.n.id) {
+          @let d = def(v.n);
+          @let s = stats(v.n.id);
+          <li class="litem">
+            <button type="button" class="node lnode" [class]="'node lnode node--' + d.category" [class.is-selected]="selectedId() === v.n.id" [class.is-active]="activeNodes().has(v.n.id)"
+                    [attr.data-node-id]="v.n.id" [attr.data-type]="v.n.type" [attr.aria-expanded]="selectedId() === v.n.id" (click)="onNodeClick(v.n.id)">
+              <span class="node__head"><span [class]="'glyph glyph--' + d.category">{{ d.glyph }}</span><span class="node__name">{{ label(v.n) }}</span></span>
+              <span class="node__stats">
+                <span>{{ ui['inLbl'] }} <b>{{ s.in }}</b></span>
+                <span>{{ d.category === 'sink' ? ui['deliveredLbl'] : ui['outLbl'] }} <b>{{ d.category === 'sink' ? s.delivered : s.out }}</b></span>
+                @if (s.failed) { <span class="st--fail">✕ <b>{{ s.failed }}</b></span> }
+                @if (s.retries) { <span class="st--warn">↻ <b>{{ s.retries }}</b></span> }
+                @if (s.dropped) { <span class="st--drop">⌀ <b>{{ s.dropped }}</b></span> }
+              </span>
+            </button>
+            @if (selectedId() === v.n.id) {
+              <div class="fs__panel fs__panel--inline" [class.tour-hl]="tourTarget() === 'panel'"><ng-container *ngTemplateOutlet="panelTpl" /></div>
+            }
+            @if (v.rels.length) {
+              <ul class="lconn">
+                @for (r of v.rels; track r.rel) {
+                  <li class="lconn__item" [class.is-fail]="isFail(r.rel)" [class.is-flowing]="!!r.edge && (flowingEdges().has(r.edge.id) || queue(r.edge.id) > 0)" [class.is-open]="!r.edge">
+                    <span class="lconn__line" aria-hidden="true"><i></i></span>
+                    <span class="lconn__txt"><b>{{ r.rel }}</b> → {{ r.target ? label(r.target) : ui['notConnected'] }}</span>
+                    @if (r.edge) { <b class="qbadge" [class.is-busy]="queue(r.edge.id) > 0" [attr.aria-label]="ui['queue'] + ' ' + queue(r.edge.id)">{{ queue(r.edge.id) }}</b> }
+                  </li>
+                }
+              </ul>
+            }
+          </li>
+        } @empty {
+          <li class="fs__empty">{{ ui['canvasEmpty'] }}</li>
+        }
+      </ol>
+    }
+  </div>
+
+  <section class="fs__narrator" [class.tour-hl]="tourTarget() === 'narrator'" [attr.aria-label]="ui['guide']">
+    <div class="guide">
+      <span class="guide__avatar" [class.is-busy]="runState() === 'running'" aria-hidden="true"><span>C</span></span>
+      <div class="guide__body">
+        <p class="guide__name">{{ ui['guide'] }} · <span class="guide__meta">{{ ui['tick'] }} {{ totals().tick }} · {{ totals().created }} {{ ui['created'] }} · {{ totals().delivered }} {{ ui['deliveredLbl'] }} · {{ totals().queued }} {{ ui['queued'] }}</span></p>
+        <div class="guide__bubble" aria-live="polite" aria-atomic="true">
+          @for (n of [narration()]; track n.id) {
+            <p class="guide__text" [class]="'guide__text tone--' + n.tone" data-testid="narration">{{ n.text }}</p>
+          }
+        </div>
+      </div>
+    </div>
+    @if (tourStep() !== null) {
+      @let step = tx.tour[tourStep()!];
+      <div class="tour" role="dialog" aria-modal="false" [attr.aria-label]="ui['tour']" data-testid="tour">
+        <p class="tour__count">{{ tourStep()! + 1 }} {{ ui['tourOf'] }} {{ tx.tour.length }}</p>
+        <h4>{{ step.title }}</h4>
+        <p>{{ step.text }}</p>
+        <div class="tour__nav">
+          <button type="button" class="btn btn--ghost btn--sm" (click)="tourBack()" [disabled]="tourStep() === 0">{{ ui['tourBack'] }}</button>
+          <button type="button" class="btn btn--ghost btn--sm" (click)="endTour()">{{ ui['tourEnd'] }}</button>
+          <button type="button" class="btn btn--primary btn--sm" data-action="tour-next" (click)="tourNext()">{{ tourStep()! + 1 === tx.tour.length ? ui['tourEnd'] : ui['tourNext'] }}</button>
+        </div>
+      </div>
+    }
+    <details class="guide__log">
+      <summary>{{ ui['log'] }} ({{ log().length }})</summary>
+      <ol>
+        @for (l of log(); track l.id) { <li [class]="'tone--' + l.tone"><span class="guide__tick">{{ ui['tick'] }} {{ l.tick }}</span> {{ l.text }}</li> }
+      </ol>
+    </details>
+    <p class="fs__demo-note">{{ ui['demoData'] }}</p>
+  </section>
+</div>
+
+<ng-template #panelTpl>
+  @let ui = T().ui;
+  @if (selected(); as n) {
+    @let d = def(n);
+    @let s = stats(n.id);
+    <div class="panel" data-testid="panel">
+      <header class="panel__head">
+        <span [class]="'glyph glyph--' + d.category">{{ d.glyph }}</span>
+        <div><h3>{{ label(n) }}</h3><p>{{ T().procs[n.type].desc }}</p></div>
+      </header>
+      <div class="panel__tabs" role="tablist">
+        <button type="button" role="tab" [attr.aria-selected]="panelTab() === 'config'" (click)="panelTab.set('config')">{{ ui['config'] }}</button>
+        <button type="button" role="tab" [attr.aria-selected]="panelTab() === 'data'" data-tab="data" (click)="panelTab.set('data')">{{ ui['data'] }} @if (selectedEvents().length) {<span class="qbadge is-busy">{{ selectedEvents().length }}</span>}</button>
+      </div>
+      @if (panelTab() === 'config') {
+        <div class="panel__body" role="tabpanel">
+          @if (locked()) { <p class="panel__locked">{{ ui['locked'] }}</p> }
+          <fieldset [disabled]="locked()">
+            @for (f of d.fields; track f.key) {
+              <label class="pfield">
+                <span>{{ T().fields[f.key] }}</span>
+                @switch (f.kind) {
+                  @case ('textarea') { <textarea rows="3" [attr.data-field]="f.key" [value]="n.config[f.key] ?? ''" (input)="updateField(f.key, $any($event.target).value)"></textarea> }
+                  @case ('select') {
+                    <select [attr.data-field]="f.key" (change)="updateField(f.key, $any($event.target).value)">
+                      @for (o of f.options; track o) { <option [value]="o" [selected]="n.config[f.key] === o">{{ T().options[o] ?? o }}</option> }
+                    </select>
+                  }
+                  @case ('number') { <input type="number" min="0" max="6" [attr.data-field]="f.key" [value]="n.config[f.key] ?? ''" (input)="updateField(f.key, $any($event.target).value)"> }
+                  @default { <input type="text" [attr.data-field]="f.key" [value]="n.config[f.key] ?? ''" (input)="updateField(f.key, $any($event.target).value)" spellcheck="false"> }
+                }
+              </label>
+            }
+            @if (relOptions().length) {
+              <h4 class="panel__sub">{{ ui['connections'] }}</h4>
+              @for (r of relOptions(); track r.rel) {
+                <label class="pfield pfield--rel" [class.is-fail]="isFail(r.rel)">
+                  <span><b>{{ r.rel }}</b> → {{ ui['connectTo'] }}</span>
+                  <select [attr.data-rel-select]="r.rel" (change)="setRelTarget(r.rel, $any($event.target).value)">
+                    <option value="" [selected]="!r.current">{{ ui['none'] }}</option>
+                    @for (o of r.options; track o.id) { <option [value]="o.id" [selected]="r.current === o.id">{{ o.label }}</option> }
+                  </select>
+                </label>
+              }
+            }
+          </fieldset>
+          <dl class="pstats">
+            <div><dt>{{ ui['inLbl'] }}</dt><dd>{{ s.in }}</dd></div>
+            <div><dt>{{ d.category === 'sink' ? ui['deliveredLbl'] : ui['outLbl'] }}</dt><dd>{{ d.category === 'sink' ? s.delivered : s.out }}</dd></div>
+            <div><dt>{{ ui['failedLbl'] }}</dt><dd>{{ s.failed }}</dd></div>
+            <div><dt>{{ ui['retriesLbl'] }}</dt><dd>{{ s.retries }}</dd></div>
+            <div><dt>{{ ui['droppedLbl'] }}</dt><dd>{{ s.dropped }}</dd></div>
+          </dl>
+          <button type="button" class="btn btn--ghost btn--sm panel__del" data-action="delete" (click)="removeSelected()" [disabled]="locked()">{{ ui['delete'] }}</button>
+        </div>
+      } @else {
+        <div class="panel__body" role="tabpanel" data-testid="provenance">
+          @if (selectedOutput().length) {
+            <h4 class="panel__sub">{{ ui['output'] }}</h4>
+            <pre class="code code--out">{{ selectedOutput().join('\n') }}</pre>
+          }
+          @for (e of selectedEvents(); track e.ev.seq; let first = $first) {
+            <details class="prov" [open]="first" [class]="'prov prov--' + e.ev.type">
+              <summary><span class="prov__tick">{{ ui['tick'] }} {{ e.ev.tick }}</span> <code>{{ e.ev.ffId }}</code> @if (e.ev.rel) {<span class="prov__rel" [class.is-fail]="isFail(e.ev.rel)">{{ e.ev.rel }}</span>} <span class="prov__type">{{ e.ev.type }}</span></summary>
+              <p>{{ e.text }}</p>
+              <div class="prov__cmp">
+                <div><span>{{ ui['before'] }}</span><pre class="code">{{ e.before }}</pre></div>
+                <div><span>{{ ui['after'] }}</span><pre class="code">{{ e.after }}</pre></div>
+              </div>
+            </details>
+          } @empty {
+            <p class="panel__empty">{{ ui['noEvents'] }}</p>
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="panel panel--empty">
+      <p>{{ ui['noSelection'] }}</p>
+      @for (i of issues(); track $index) { <p class="panel__issue">{{ i }}</p> }
+      <dl class="pstats">
+        <div><dt>{{ ui['tick'] }}</dt><dd>{{ totals().tick }}</dd></div>
+        <div><dt>{{ ui['created'] }}</dt><dd>{{ totals().created }}</dd></div>
+        <div><dt>{{ ui['deliveredLbl'] }}</dt><dd>{{ totals().delivered }}</dd></div>
+        <div><dt>{{ ui['failedLbl'] }}</dt><dd>{{ totals().failed }}</dd></div>
+        <div><dt>{{ ui['droppedLbl'] }}</dt><dd>{{ totals().dropped }}</dd></div>
+      </dl>
+    </div>
+  }
+</ng-template>

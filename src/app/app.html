@@ -9,6 +9,7 @@
     <nav id="main-menu" class="nav__links" [class.open]="menuOpen()" [attr.aria-label]="t.a11y.mainNav">
       <a href="#leistungen" [class.active]="activeSection() === 'leistungen'" (click)="scrollTo('leistungen', $event)">{{ t.nav.services }}</a>
       <a href="#demo" [class.active]="activeSection() === 'demo'" (click)="scrollTo('demo', $event)">{{ t.nav.demo }}</a>
+      <a href="#flow-studio" [class.active]="activeSection() === 'flow-studio'" (click)="scrollTo('flow-studio', $event)">{{ t.nav.flow }}</a>
       <a href="#vorgehen" [class.active]="activeSection() === 'vorgehen'" (click)="scrollTo('vorgehen', $event)">{{ t.nav.process }}</a>
       <a href="#projekt-check" [class.active]="activeSection() === 'projekt-check'" (click)="scrollTo('projekt-check', $event)">{{ t.nav.scoping }}</a>
       <a href="#faq" [class.active]="activeSection() === 'faq'" (click)="scrollTo('faq', $event)">{{ t.nav.faq }}</a>
@@ -103,7 +104,25 @@
     </div>
   </section>
 
-  <section id="vorgehen" class="section">
+  <section id="flow-studio" class="section section--flow">
+    <div class="container container--wide">
+      <header class="section__head" appReveal>
+        <p class="eyebrow">{{ t.flow.eyebrow }}</p>
+        <h2>{{ t.flow.title }}</h2>
+        <p>{{ t.flow.lead }}</p>
+        <ul class="tags tags--center">@for (p of t.flow.points; track p) {<li>{{ p }}</li>}</ul>
+      </header>
+      @defer (on viewport; prefetch on idle) {
+        <app-flow-studio />
+      } @placeholder {
+        <div class="fs-placeholder"><span>{{ t.flow.loading }}</span></div>
+      } @loading (minimum 200ms) {
+        <div class="fs-placeholder" role="status"><span>{{ t.flow.loading }}</span></div>
+      }
+    </div>
+  </section>
+
+  <section id="vorgehen" class="section section--alt">
     <div class="container">
       <header class="section__head" appReveal>
         <p class="eyebrow">{{ t.process.eyebrow }}</p>
@@ -123,7 +142,7 @@
     </div>
   </section>
 
-  <section id="arbeitsweise" class="section section--alt">
+  <section id="arbeitsweise" class="section">
     <div class="container">
       <header class="section__head" appReveal>
         <p class="eyebrow">{{ t.why.eyebrow }}</p>
@@ -143,7 +162,7 @@
     </div>
   </section>
 
-  <section id="technologien" class="section">
+  <section id="technologien" class="section section--alt">
     <div class="container">
       <header class="section__head" appReveal>
         <p class="eyebrow">{{ t.tech.eyebrow }}</p>
@@ -161,7 +180,7 @@
     </div>
   </section>
 
-  <section id="projekt-check" class="section section--alt">
+  <section id="projekt-check" class="section">
     <div class="container wizard-layout">
       <header class="section__head" appReveal>
         <p class="eyebrow">{{ t.wizard.eyebrow }}</p>
@@ -172,7 +191,7 @@
     </div>
   </section>
 
-  <section id="faq" class="section">
+  <section id="faq" class="section section--alt">
     <div class="container container--narrow">
       <header class="section__head" appReveal>
         <p class="eyebrow">{{ t.faq.eyebrow }}</p>

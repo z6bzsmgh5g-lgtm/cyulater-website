@@ -34,7 +34,7 @@ describe('CommandPaletteComponent', () => {
     await f.whenStable();
     await Promise.resolve();
     expect(document.activeElement).toBe(el.querySelector('input'));
-    expect(el.querySelectorAll('[role=option]').length).toBe(13);
+    expect(el.querySelectorAll('[role=option]').length).toBe(14);
     expect(el.querySelectorAll('.palette__group').length).toBe(2);
   });
 

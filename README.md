@@ -18,6 +18,7 @@ Deployment erfolgt automatisch per GitHub Actions bei Push auf `main`.
 ## Features
 - Interaktives Integrations-/ETL-Diagramm im Hero (SVG, Tastatur-bedienbar, Reduced-Motion-fähig)
 - API-Demo-Konsole mit simulierten Requests/Responses
+- Flow Studio (lazy via `@defer`): NiFi-ähnlicher Flow-Builder mit 15 simulierten Prozessoren, Vorlagen, Fehler/Retry-Simulation, Data Provenance und Flow-Guide (Erklärungen in Klartext); Engine als reines TypeScript in `src/app/flow-studio/flow-engine.ts`
 - Projekt-Check (4-Schritte-Assistent) → strukturierte Anfrage
 - Schnellnavigation per Strg/⌘+K, Hell/Dunkel-Design (View Transitions), DE/EN zur Laufzeit
 - Anfragen (Kontakt / Projekt-Check / Support) landen per Jira-Automation-Webhook im Service-Desk **Cyulater Service (CS)**; ohne Endpoint mailto – siehe `docs/INQUIRY_API.md`

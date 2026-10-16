@@ -30,7 +30,7 @@ export class CommandPaletteComponent {
   readonly items = computed<PaletteItem[]>(() => {
     const t = this.i18n.t();
     const nav: [string, string][] = [
-      ['leistungen', t.nav.services], ['demo', t.nav.demo], ['vorgehen', t.nav.process], ['arbeitsweise', t.why.eyebrow],
+      ['leistungen', t.nav.services], ['demo', t.nav.demo], ['flow-studio', t.nav.flow], ['vorgehen', t.nav.process], ['arbeitsweise', t.why.eyebrow],
       ['technologien', t.tech.eyebrow], ['projekt-check', t.nav.scoping], ['faq', t.nav.faq], ['kontakt', t.nav.contact],
     ];
     return [

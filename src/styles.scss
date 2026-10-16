@@ -318,3 +318,13 @@ kbd { font-family: var(--mono); font-size: .72rem; padding: .1rem .35rem; border
   .reveal { opacity: 1; transform: none; }
 }
 .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+/* ---------- Flow Studio (section shell; component styles are lazy) ---------- */
+.section--flow { position: relative; background: radial-gradient(60% 50% at 50% 0%, var(--glow-1), transparent 70%); }
+.tags--center { justify-content: center; margin-top: .4rem; }
+.fs-placeholder { min-height: 620px; border: 1px dashed var(--border-strong); border-radius: 16px; display: grid; place-items: center; color: var(--muted); background: var(--surface); }
+@media (max-width: 760px) { .fs-placeholder { min-height: 900px; } }
+.container--wide { width: min(1560px, 100% - 2.5rem); }
+@media (max-width: 400px) { .container--wide { width: calc(100% - 2rem); } }
+.status-pill--err { color: var(--err); }
+.console__tabs { flex-wrap: wrap; }

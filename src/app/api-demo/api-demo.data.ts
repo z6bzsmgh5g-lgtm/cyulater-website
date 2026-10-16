@@ -1,6 +1,6 @@
 /** Mock request/response pairs for the API demo. Sample data only – no real systems. */
 export interface DemoCall {
-  id: 'orders' | 'classify' | 'issue';
+  id: 'orders' | 'classify' | 'issue' | 'etl' | 'ratelimit';
   method: 'GET' | 'POST';
   path: string;
   body?: unknown;
@@ -33,6 +33,17 @@ export const DEMO_CALLS: DemoCall[] = [
     body: { project: 'SUP', type: 'Task', summary: 'Doppelte Abbuchung prüfen', labels: ['billing', 'auto-created'] },
     status: 201, statusText: 'Created', latencyMs: 236,
     response: { key: 'SUP-128', url: 'https://example.atlassian.net/browse/SUP-128', status: 'To Do', createdAt: '2026-10-14T08:21:07Z' },
+  },
+  {
+    id: 'etl', method: 'POST', path: '/v1/etl/jobs',
+    body: { pipeline: 'orders-to-warehouse', source: { type: 'rest', url: 'https://erp.example.com/v1/orders' }, steps: ['parse-json', 'filter:amount>100', 'map-fields'], target: { type: 'warehouse', table: 'analytics.orders' }, mode: 'incremental' },
+    status: 202, statusText: 'Accepted', latencyMs: 58,
+    response: { jobId: 'job_7f3c21', status: 'queued', statusUrl: '/v1/etl/jobs/job_7f3c21', estimatedRecords: 1840, links: { logs: '/v1/etl/jobs/job_7f3c21/logs' } },
+  },
+  {
+    id: 'ratelimit', method: 'GET', path: '/v1/inventory?warehouse=HAM',
+    status: 429, statusText: 'Too Many Requests', latencyMs: 12,
+    response: { type: 'https://api.example.com/problems/rate-limit', title: 'Rate limit exceeded', status: 429, detail: '600 requests per minute allowed.', retryAfterSeconds: 30, headers: { 'Retry-After': '30', 'X-RateLimit-Remaining': '0' } },
   },
 ];
 
